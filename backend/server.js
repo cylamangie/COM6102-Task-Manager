@@ -1,0 +1,89 @@
+const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
+const cors = require('cors');
+const { Pool } = require('pg');
+require('dotenv').config();
+
+const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: { origin: "http://localhost:3000", methods: ["GET", "POST"] }
+});
+
+app.use(cors({ origin: "http://localhost:3000" }));
+app.use(express.json());
+
+// Postgres pool
+const pool = new Pool({
+  user: 'postgres',
+  host: 'localhost',
+  database: 'taskdb',
+  password: 'password',
+  port: 5432,
+});
+
+// Auth (MVP)
+app.post('/api/login', async (req, res) => {
+  const { username } = req.body;
+  try {
+    const { rows } = await pool.query(
+      'INSERT INTO users (username) VALUES ($1) ON CONFLICT (username) DO UPDATE SET username = $1 RETURNING id, username',
+      [username]
+    );
+    res.json({ userId: rows[0].id, username: rows[0].username });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get tasks
+app.get('/api/boards/:boardId/tasks', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM tasks WHERE board_id = $1 ORDER BY updated_at DESC',
+      [req.params.boardId]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Create task
+app.post('/api/boards/:boardId/tasks', async (req, res) => {
+  try {
+    const { title, description } = req.body;
+    const { rows } = await pool.query(
+      'INSERT INTO tasks (board_id, title, description) VALUES ($1, $2, $3) RETURNING *',
+      [req.params.boardId, title, description]
+    );
+    const newTask = rows[0];
+    
+    // Real-time broadcast!
+    io.emit('taskCreated', newTask);
+    
+    res.json(newTask);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// WebSocket
+io.on('connection', (socket) => {
+  console.log('👤 User connected:', socket.id);
+  
+  socket.on('joinBoard', (boardId) => {
+    socket.join(`board-${boardId}`);
+    console.log(`User ${socket.id} joined board ${boardId}`);
+  });
+  
+  socket.on('disconnect', () => {
+    console.log('👋 User disconnected:', socket.id);
+  });
+});
+
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => {
+  console.log(`🚀 Backend + Socket.io running on http://localhost:${PORT}`);
+});
