@@ -24,6 +24,7 @@ CREATE TABLE tasks (
   title VARCHAR(200) NOT NULL,
   description TEXT,
   status VARCHAR(20) DEFAULT 'todo',
+  priority TEXT DEFAULT 'medium',
   assigned_to INTEGER REFERENCES users(id),
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
