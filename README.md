@@ -19,19 +19,23 @@ A **real-time collaborative Kanban board** built for **COM6102 Cloud Computing &
 | Vite | pg (PostgreSQL client) | Docker | CORS |
 
 ## 📁 **Project Structure**
+```bash
 COM6102-Task-Manager/
-├── backend/                 # Node.js + Express API
-│   ├── server.js           # Main server + Socket.IO
+├── backend/
+│   ├── server.js
 │   ├── package.json
-├── frontend/                # React + Vite SPA
+├── frontend/
 │   ├── src/
-│   │   ├── App.jsx         # Kanban board UI
-│   │   └── main.jsx
-│   ├── vite.config.js      # API proxy + Socket.IO
-├── db/                      # Database schema
-│   └── init.sql            # Tables + priority column
-├── docker-compose.yml       # PostgreSQL container
-└── README.md
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   ├── package.json
+│   ├── vite.config.js
+├── db/
+│   ├── init.sql
+├── docker-compose.yml
+├── README.md
+```
+
 
 
 ## 🚀 **Quick Start** *(5 minutes)*
