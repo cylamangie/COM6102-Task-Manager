@@ -1,193 +1,162 @@
-# COM6102 Task Manager
+# 🚀 COM6102 Task Manager
 
-A real-time collaborative task manager built for the COM6102 project.  
-This project uses a React frontend, Express/Node.js backend, PostgreSQL database, and Socket.IO for real-time task updates. [cite:480]
+A **real-time collaborative Kanban board** built for **COM6102 Cloud Computing & Distributed Systems**. Supports full CRUD operations, task prioritization, and live synchronization across multiple browser sessions.
 
-## Features
+## ✨ **Key Features**
 
-- Create a new task. [cite:480]
-- View tasks by status in a Kanban-style board. [cite:480]
-- Update task title. [cite:480]
-- Update task status (`todo`, `in-progress`, `done`). [cite:480]
-- Delete tasks. [cite:480]
-- Set task priority (`low`, `medium`, `high`). [cite:480]
-- Real-time task sync across browser tabs using Socket.IO. [cite:480]
+- ✅ **Full CRUD Operations**: Create, Read, Update, Delete tasks
+- 🎯 **Task Prioritization**: `low` | `medium` | `high` with visual badges
+- 🔄 **Real-time Sync**: Socket.IO updates across all connected clients
+- 📱 **Kanban Board**: Status columns (`todo` → `in-progress` → `done`)
+- 👥 **Multi-user**: Open multiple tabs to test collaboration
+- 🐳 **Docker Ready**: PostgreSQL database with docker-compose
 
-## Tech Stack
+## 🏗️ **Tech Stack**
 
-- Frontend: React + Vite
-- Backend: Node.js + Express
-- Database: PostgreSQL
-- Realtime: Socket.IO
-- Version Control: Git + GitHub
+| Frontend | Backend | Database | Realtime |
+|----------|---------|----------|----------|
+| React 17+ | Node.js + Express | PostgreSQL 15 | Socket.IO |
+| Vite | pg (PostgreSQL client) | Docker | CORS |
 
-## Project Structure
-
-```bash
+## 📁 **Project Structure**
 COM6102-Task-Manager/
-├── backend/
-│   ├── server.js
+├── backend/                 # Node.js + Express API
+│   ├── server.js           # Main server + Socket.IO
 │   ├── package.json
-├── frontend/
+├── frontend/                # React + Vite SPA
 │   ├── src/
-│   │   ├── App.jsx
-│   │   ├── main.jsx
-│   ├── package.json
-│   ├── vite.config.js
-├── db/
-│   ├── init.sql
-├── docker-compose.yml
-├── README.md
-```
+│   │   ├── App.jsx         # Kanban board UI
+│   │   └── main.jsx
+│   ├── vite.config.js      # API proxy + Socket.IO
+├── db/                      # Database schema
+│   └── init.sql            # Tables + priority column
+├── docker-compose.yml       # PostgreSQL container
+└── README.md
 
-## Setup
 
-### 1. Clone the repository
+## 🚀 **Quick Start** *(5 minutes)*
+
+### Prerequisites
+- Node.js 18+
+- Docker (for PostgreSQL)
+- Git
+
+### 1. Clone & Install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/COM6102-Task-Manager.git
+git clone https://github.com/cylamangie/COM6102-Task-Manager.git
 cd COM6102-Task-Manager
 ```
 
-### 2. Install dependencies
-
-Backend:
+**Backend:**
 ```bash
-cd backend
-npm install
+cd backend && npm install && cd ..
 ```
 
-Frontend:
+**Frontend:**
 ```bash
-cd ../frontend
-npm install
+cd frontend && npm install && cd ..
 ```
 
-### 3. Start PostgreSQL
-
-If using Docker Compose:
+### 2. Start Database
 
 ```bash
 docker-compose up -d
+# Verify: docker ps (should see postgres container)
 ```
 
-Check running containers:
+### 3. Run Services
 
-```bash
-docker ps
-```
-
-## Run the Project
-
-### Start backend
-
-Open a terminal:
-
+**Terminal 1 - Backend (Port 5001):**
 ```bash
 cd backend
 node server.js
 ```
+🚀 Backend + Socket.IO running on http://localhost:5001
 
-Expected backend server:
-```bash
-http://localhost:5001
-```
-
-### Start frontend
-
-Open another terminal:
-
+**Terminal 2 - Frontend (Port 3000):**
 ```bash
 cd frontend
 npm run dev
 ```
 
-Expected frontend app:
-```bash
-http://localhost:3000
-```
 
-## How to Use
+## 🎮 **How to Use**
 
-1. Open the frontend in the browser.
-2. Add a new task using the input box.
-3. Select task priority when creating a task.
-4. Change task status using the dropdown in each task card.
-5. Edit or delete tasks using the buttons.
-6. Open another browser tab to test real-time sync.
+1. Open `http://localhost:3000`
+2. **Add Task**: Type title → Select priority → Click "Add Task" 🎯
+3. **Update Status**: Use dropdown in task card 🔄
+4. **Edit Task**: Click "Edit" button ✏️
+5. **Delete Task**: Click "Delete" button 🗑️
+6. **Real-time**: Open second browser tab to see live sync! 👥
 
-## Common Commands
+### Priority Colors
+| Priority | Badge Color |
+|----------|-------------|
+| `low`    | 🟢 Green    |
+| `medium` | 🟡 Yellow   |
+| `high`   | 🔴 Red      |
 
-### Check Git status
-```bash
-git status
-```
+## 🔧 **Development Commands** *(Copy & Paste)*
 
-### Start backend
-```bash
-cd backend
-node server.js
-```
+| Action | Command |
+|--------|---------|
+| Install deps | `npm install` (backend/frontend) |
+| Start backend | `cd backend && node server.js` |
+| Start frontend | `cd frontend && npm run dev` |
+| Database shell | `docker exec -it com6102-task-manager-db-1 psql -U postgres -d taskdb` |
+| Stop services | `docker-compose down` |
+| View logs | `docker logs com6102-task-manager-db-1` |
 
-### Start frontend
-```bash
-cd frontend
-npm run dev
-```
+## 🐛 **Troubleshooting**
 
-### Start database with Docker
-```bash
-docker-compose up -d
-```
+| Issue | Solution |
+|-------|----------|
+| **Blank page** | Check F12 Console. Ensure backend running on `:5001` |
+| **API 500 error** | Check backend terminal. Verify `taskdb` exists |
+| **CORS error** | Restart frontend/backend. Check `vite.config.js` proxy |
+| **No tasks** | Run `docker exec -it com6102-task-manager-db-1 psql -U postgres -d taskdb` |
+| **Port busy** | `lsof -ti:5001` → `kill -9 <PID>` |
 
-### Stop Docker containers
-```bash
-docker-compose down
-```
-
-### View database container
-```bash
-docker ps
-```
-
-### Connect to PostgreSQL
-```bash
-docker exec -it com6102-task-manager-db-1 psql -U postgres -d taskdb
-```
-
-## Database Notes
-
-The `tasks` table includes a `priority` column with default value `medium`.
-
-Example SQL used:
+## 💾 **Database Schema**
 
 ```sql
-ALTER TABLE tasks ADD COLUMN priority TEXT DEFAULT 'medium';
+-- tasks table (with priority enhancement)
+CREATE TABLE tasks (
+  id SERIAL PRIMARY KEY,
+  board_id INTEGER,
+  title TEXT NOT NULL,
+  description TEXT,
+  status TEXT DEFAULT 'todo',
+  priority TEXT DEFAULT 'medium',  -- NEW!
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
 ```
 
-## Troubleshooting
+## 📱 **API Endpoints**
 
-### Blank page in frontend
-- Check browser console for errors.
-- Make sure backend is running on port `5001`.
-- Make sure frontend is running on port `3000`.
-- Check `vite.config.js` proxy settings.
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/boards/:id/tasks` | List tasks |
+| `POST` | `/api/boards/:id/tasks` | Create task |
+| `PUT` | `/api/tasks/:id` | Update task |
+| `DELETE` | `/api/tasks/:id` | Delete task |
 
-### API returns 500 error
-- Check backend terminal logs.
-- Confirm PostgreSQL is running.
-- Confirm the `taskdb` database exists.
-- Confirm the `tasks` table includes the required columns.
+## 👥 **Contributors**
+- Angie Lam [@cylamangie]
+- Jimmy Lo [@immylo102]
+- Yuen Sze Hong [@YuenSzeHong]
 
-### Socket.IO or CORS issues
-- Make sure backend CORS allows the frontend origin.
-- Restart both frontend and backend after config changes.
 
-## Contributors
+## 📄 **License**
+Academic project for COM6102 Cloud Computing & Distributed Systems
+(C) 2026 COM6102 Group Project
 
-- Angie
-- Group members
+---
 
-## License
+⭐ **Star this repo if helpful!**  
+🐛 **Found a bug?** Open an issue  
+🤝 **Want to contribute?** Fork → Branch → PR
 
-This project is for academic use in COM6102.
+
