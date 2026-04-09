@@ -68,7 +68,28 @@ app.post('/api/boards/:boardId/tasks', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// Delete task
+app.delete('/api/tasks/:id', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'DELETE FROM tasks WHERE id = $1 RETURNING *',
+      [req.params.id]
+    );
 
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    const deletedTask = rows[0];
+
+    // Real-time broadcast
+    io.emit('taskDeleted', deletedTask.id);
+
+    res.json({ message: 'Task deleted successfully', task: deletedTask });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 // WebSocket
 io.on('connection', (socket) => {
   console.log('👤 User connected:', socket.id);
