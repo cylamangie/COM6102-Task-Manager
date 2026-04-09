@@ -85,7 +85,6 @@ app.post('/api/boards/:boardId/tasks', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 // Delete task
 app.delete('/api/tasks/:id', async (req, res) => {
   try {
