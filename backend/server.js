@@ -68,7 +68,58 @@ app.post('/api/boards/:boardId/tasks', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// Delete task
+app.delete('/api/tasks/:id', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'DELETE FROM tasks WHERE id = $1 RETURNING *',
+      [req.params.id]
+    );
 
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    const deletedTask = rows[0];
+
+    // Real-time broadcast
+    io.emit('taskDeleted', deletedTask.id);
+
+    res.json({ message: 'Task deleted successfully', task: deletedTask });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+// Update task
+app.put('/api/tasks/:id', async (req, res) => {
+  try {
+    const { title, status } = req.body
+
+    const { rows } = await pool.query(
+      `UPDATE tasks
+       SET
+         title = COALESCE($1, title),
+         status = COALESCE($2, status),
+         updated_at = CURRENT_TIMESTAMP
+       WHERE id = $3
+       RETURNING *`,
+      [title, status, req.params.id]
+    )
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Task not found' })
+    }
+
+    const updatedTask = rows[0]
+
+    io.emit('taskUpdated', updatedTask)
+
+    res.json(updatedTask)
+  } catch (err) {
+    console.error('Update task error:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
 // WebSocket
 io.on('connection', (socket) => {
   console.log('👤 User connected:', socket.id);

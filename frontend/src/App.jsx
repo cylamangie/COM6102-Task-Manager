@@ -9,17 +9,29 @@ function App() {
   const boardId = 1
 
   useEffect(() => {
-    // Load initial tasks
     fetch(`/api/boards/${boardId}/tasks`)
       .then(res => res.json())
       .then(setTasks)
 
-    // Socket listeners
     socket.on('taskCreated', (task) => {
       setTasks(prev => [task, ...prev])
     })
 
-    return () => socket.off('taskCreated')
+    socket.on('taskDeleted', (deletedTaskId) => {
+      setTasks(prev => prev.filter(task => task.id !== deletedTaskId))
+    })
+
+    socket.on('taskUpdated', (updatedTask) => {
+      setTasks(prev =>
+        prev.map(task => task.id === updatedTask.id ? updatedTask : task)
+      )
+    })
+
+    return () => {
+      socket.off('taskCreated')
+      socket.off('taskDeleted')
+      socket.off('taskUpdated')
+    }
   }, [])
 
   const addTask = async (e) => {
@@ -37,10 +49,48 @@ function App() {
     }
   }
 
+  const deleteTask = async (taskId) => {
+    const res = await fetch(`/api/tasks/${taskId}`, {
+      method: 'DELETE'
+    })
+
+    if (!res.ok) {
+      alert('Failed to delete task')
+    }
+  }
+
+  const editTask = async (task) => {
+    const newTitle = prompt('Enter new task title:', task.title)
+
+    if (!newTitle || !newTitle.trim()) return
+
+    const res = await fetch(`/api/tasks/${task.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: newTitle })
+    })
+
+    if (!res.ok) {
+      alert('Failed to update task title')
+    }
+  }
+
+  const updateStatus = async (taskId, newStatus) => {
+    const res = await fetch(`/api/tasks/${taskId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus })
+    })
+
+    if (!res.ok) {
+      alert('Failed to update status')
+    }
+  }
+
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
       <h1>🚀 COM6102 Task Manager (Board {boardId})</h1>
-      
+
       <form onSubmit={addTask} style={{ marginBottom: '20px' }}>
         <input
           value={newTask}
@@ -48,15 +98,73 @@ function App() {
           placeholder="Add new task..."
           style={{ padding: '10px', width: '300px', marginRight: '10px' }}
         />
-        <button type="submit" style={{ padding: '10px 20px' }}>Add Task</button>
+        <button type="submit" style={{ padding: '10px 20px' }}>
+          Add Task
+        </button>
       </form>
 
-      <ul>
+      <ul style={{ listStyle: 'none', padding: 0 }}>
         {tasks.map(task => (
-          <li key={task.id} style={{ padding: '10px', border: '1px solid #ccc', margin: '5px 0' }}>
+          <li
+            key={task.id}
+            style={{
+              padding: '12px',
+              border: '1px solid #ccc',
+              margin: '8px 0',
+              borderRadius: '8px'
+            }}
+          >
             <strong>{task.title}</strong>
             {task.description && <p>{task.description}</p>}
-            <small>Status: {task.status} | {new Date(task.updated_at).toLocaleString()}</small>
+
+            <div style={{ marginTop: '8px', marginBottom: '8px' }}>
+              <label style={{ marginRight: '8px' }}>Status:</label>
+              <select
+                value={task.status}
+                onChange={(e) => updateStatus(task.id, e.target.value)}
+                style={{ padding: '6px' }}
+              >
+                <option value="todo">todo</option>
+                <option value="in-progress">in-progress</option>
+                <option value="done">done</option>
+              </select>
+            </div>
+
+            <small>
+              Updated: {new Date(task.updated_at).toLocaleString()}
+            </small>
+            <br />
+
+            <button
+              onClick={() => editTask(task)}
+              style={{
+                marginTop: '8px',
+                marginRight: '8px',
+                padding: '6px 12px',
+                backgroundColor: '#0275d8',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              Edit
+            </button>
+
+            <button
+              onClick={() => deleteTask(task.id)}
+              style={{
+                marginTop: '8px',
+                padding: '6px 12px',
+                backgroundColor: '#d9534f',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              Delete
+            </button>
           </li>
         ))}
       </ul>
