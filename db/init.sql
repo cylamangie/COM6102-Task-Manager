@@ -1,5 +1,5 @@
 -- Create tables for collaborative task manager
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
   username VARCHAR(50) UNIQUE NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -8,7 +8,7 @@ CREATE TABLE users (
 -- Insert demo user
 INSERT INTO users (username) VALUES ('demo-user') ON CONFLICT DO NOTHING;
 
-CREATE TABLE boards (
+CREATE TABLE IF NOT EXISTS boards (
   id SERIAL PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
   owner_id INTEGER REFERENCES users(id),
@@ -16,9 +16,18 @@ CREATE TABLE boards (
 );
 
 -- Insert demo board
-INSERT INTO boards (name, owner_id) VALUES ('Team Demo Board', 1) ON CONFLICT DO NOTHING;
+INSERT INTO boards (name, owner_id)
+SELECT 'Team Demo Board', u.id
+FROM users u
+WHERE u.username = 'demo-user'
+  AND NOT EXISTS (
+    SELECT 1
+    FROM boards b
+    WHERE b.name = 'Team Demo Board'
+      AND b.owner_id = u.id
+  );
 
-CREATE TABLE tasks (
+CREATE TABLE IF NOT EXISTS tasks (
   id SERIAL PRIMARY KEY,
   board_id INTEGER REFERENCES boards(id),
   title VARCHAR(200) NOT NULL,
